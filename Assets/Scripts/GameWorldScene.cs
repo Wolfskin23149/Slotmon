@@ -8,7 +8,6 @@ public class GameWorldScene : SceneState
     {
         StateName = "GameWorldScene";
     }
-
     public override void OnBegin()
     {
         Debug.Log("GameWorldScene OnBegin");
@@ -28,6 +27,10 @@ public class GameWorldScene : SceneState
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             m_Controller.SetState(new MainMenuScene(m_Controller), "MainMenuScene");
+        }
+        if(Input.GetKeyDown(KeyCode.KeypadEnter))
+        {
+            
         }
     }
 }

@@ -17,6 +17,7 @@ public class MainMenuScene : SceneState
         if (Input.GetKeyDown(KeyCode.Space))
         {
             OnStartGameClick();
+
         }
     }
     //開始新遊戲

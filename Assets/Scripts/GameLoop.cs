@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameLoop : MonoBehaviour
@@ -28,6 +29,11 @@ public class GameLoop : MonoBehaviour
     {
         m_SceneStateController.SceneStateUpdate();
         //Player Input
+        if(Input.GetKeyDown(KeyCode.Return))
+        {
+            //Debug.Log(KeyCode.Return + " is pressed");
+            GameEvent.Instance.TriggerSpin();
+        }
         //GameLogic Update
         //UI Update
     }
