@@ -9,7 +9,7 @@ public class SymbolController : MonoBehaviour
     private GameObject symbolObject;
     private RectTransform rewardPos;
     private float reelSpeed = 0;
-    private float reelDamping = 2;
+    private float reelDamping = 10;
     private RectTransform disappearPos;
     private RectTransform respawanPos;
     private List<GameObject> symbolReel = new();
@@ -17,10 +17,12 @@ public class SymbolController : MonoBehaviour
     private float topSymbolYPos = 2.0f;
     private float disappearSymbolYPos = -3.0f;
     private bool isRolling = false;
+    public List<string> rewardArea = new();
     private void Start()
     {
         CreateSymbol();
         GameEvent.Instance.OnSpinTriggered += SpinSymbolReel;
+        GameEvent.Instance.OnSpinCompleted += SetRewardArea;
     }
     private void Update()
     {
@@ -30,6 +32,7 @@ public class SymbolController : MonoBehaviour
     private void OnDestroy()
     {
         GameEvent.Instance.OnSpinTriggered -= SpinSymbolReel;
+        GameEvent.Instance.OnSpinCompleted -= SetRewardArea;
     }
     public void CreateSymbol()
     {
@@ -53,17 +56,15 @@ public class SymbolController : MonoBehaviour
     {
         Debug.Log("SpinSymbolReel()");
         isRolling = true;
-        reelSpeed = 10f;
+        reelSpeed = 50f;
         //抓取symbolReel中的每一個物件的RectTransform
         foreach (GameObject symbolObject in symbolReel)
         {
             Debug.Log("Symbol is Y posision" + symbolObject.GetComponent<Symbol>().symbolName
                 + " : " + symbolObject.transform.position.y);
+            Debug.Log("Symbol is X posision" + symbolObject.GetComponent<Symbol>().symbolName
+                + " : " + symbolObject.transform.position.x);
         }
-        //將每一個物件獲得一個向下20的速度，每秒速度減少0.1
-        //若有物件的Y座標小於-2的Y座標時，則該物件的Y座標設為 +2 的Y座標
-        //當速度<=0時，速度等於0，則物件Y座標最接近0的物件A，其他的物件加上物件A的Y座標值，物件A的Y座標設為0
-        //Y座標為0的物件為獎勵位置
     }
     void SymbolRollDown()
     {
@@ -101,9 +102,9 @@ public class SymbolController : MonoBehaviour
         {
             reelSpeed -= reelDamping * Time.deltaTime;
         }
-        else if (reelSpeed <= 0)
+        else if (reelSpeed <= 0.05f && isRolling)
         {
-            reelSpeed = 0.0f; //0.05f
+            reelSpeed = 0; //0.05f
             isRolling = false;
             ResetSymbolPosision();
         }
@@ -117,15 +118,47 @@ public class SymbolController : MonoBehaviour
             symbolReel[i].transform.position = new Vector2(symbolReel[i].transform.position.x, transform.position.y + topSymbolYPos + symbolDistance);
             symbolDistance -= symbolSpacing;
         }
+        GameEvent.Instance.SpinCompleted();
+    }
+    //傳出獎勵位置的資訊
+    //位置在Y軸上 1、0、-1座標上的符號，為獎勵符號
+    void SetRewardArea()
+    {
+        rewardArea.Clear();
+        for (int i = 0; i < symbolReel.Count; i++)
+        {
+            if (symbolReel[i].transform.position.y <= 1 && symbolReel[i].transform.position.y >= -1)
+            {
+                string rewardSymbol = symbolReel[i].GetComponent<Symbol>().symbolName;
+                rewardArea.Add(rewardSymbol);
+                SendToAmount();
+            }
+        }
+    }
+    void SendToAmount()
+    {
+        float reelList = symbolReel[0].transform.position.x;
+        if (reelList <= -1)
+        {
+            for (int i = 0; i < rewardArea.Count; i++)
+            {
+                SlotMachineSystem.Instance.rewardAmount[0, i] = rewardArea[i];
+            }
+        }
+        else if (reelList == 0)
+        {
+            for (int i = 0; i < rewardArea.Count; i++)
+            {
+                SlotMachineSystem.Instance.rewardAmount[1, i] = rewardArea[i];
+            }
+        }
+        else if (reelList >= 1)
+        {
+            for (int i = 0; i < rewardArea.Count; i++)
+            {
+                SlotMachineSystem.Instance.rewardAmount[2, i] = rewardArea[i];
+            }
+        }
     }
 }
-    //IEnumerator ResetPos(float stopAdjust,float speed)
-    //{
-    //    while(isRolling)
-    //    yield return null;
-    //}
-    //亂數生成SymbolPrefab中的資訊並配置位置
-    //定義獎勵位置
-    //滾動卷軸
-    //傳出獎勵位置的資訊
 

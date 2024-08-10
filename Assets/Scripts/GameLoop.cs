@@ -34,6 +34,10 @@ public class GameLoop : MonoBehaviour
             //Debug.Log(KeyCode.Return + " is pressed");
             GameEvent.Instance.TriggerSpin();
         }
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            SlotMachineSystem.Instance.ShowReward();
+        }
         //GameLogic Update
         //UI Update
     }
